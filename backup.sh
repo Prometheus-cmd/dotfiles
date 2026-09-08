@@ -66,7 +66,7 @@ for f in "${SCRIPT_FILES[@]}"; do
 done
 
 echo "==> Exporting package lists"
-pacman -Qqe > "$REPO_DIR/pkglist.txt"
+pacman -Qqen > "$REPO_DIR/pkglist.txt"
 if command -v yay >/dev/null; then
   yay -Qqem > "$REPO_DIR/aur-pkglist.txt"
 elif command -v paru >/dev/null; then
