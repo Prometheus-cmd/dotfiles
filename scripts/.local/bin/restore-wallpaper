@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Restores last wallpaper on Hyprland login
+
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+exec &> /tmp/restore-wallpaper.log
+
+THEMES_DIR="$HOME/.config/themes"
+CURRENT_THEME_FILE="$HOME/.config/current-theme"
+LAST_WALL_FILE="$HOME/.cache/current_wallpaper"
+
+if ! command -v awww &>/dev/null; then
+    echo "Error: awww not found" >&2
+    exit 1
+fi
+
+# Wait for awww-daemon (launched via exec-once in hyprland.conf)
+sleep 1
+
+if ! awww query &>/dev/null; then
+    nohup awww-daemon &>/dev/null &
+    sleep 1
+    if ! awww query &>/dev/null; then
+        echo "Error: awww-daemon failed" >&2
+        exit 1
+    fi
+fi
+
+# 1. Try saved wallpaper
+if [ -f "$LAST_WALL_FILE" ]; then
+    WALL=$(cat "$LAST_WALL_FILE")
+    if [ -f "$WALL" ]; then
+        awww img "$WALL" --transition-type fade --transition-duration 1.5
+        echo "Restored: $WALL"
+        exit 0
+    fi
+fi
+
+# 2. Fallback to theme folder
+if [ -f "$CURRENT_THEME_FILE" ]; then
+    THEME=$(cat "$CURRENT_THEME_FILE")
+    WALLPAPER_PATH=$(eval echo "$(cat "$THEMES_DIR/$THEME/wallpaper-path.txt" 2>/dev/null)")
+    if [ -d "$WALLPAPER_PATH" ]; then
+        WALL=$(find "$WALLPAPER_PATH" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" \) | shuf -n 1)
+        if [ -n "$WALL" ]; then
+            awww img "$WALL" --transition-type fade --transition-duration 1.5
+            echo "$WALL" > "$LAST_WALL_FILE"
+            echo "Theme fallback: $WALL"
+            exit 0
+        fi
+    fi
+fi
+
+# 3. Last resort
+WALL=$(find "$HOME/Pictures/Wallpapers" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" \) | head -n 1)
+if [ -n "$WALL" ]; then
+    awww img "$WALL" --transition-type fade --transition-duration 1.5
+    echo "Global fallback: $WALL"
+else
+    echo "No wallpapers found" >&2
+fi

@@ -1,0 +1,248 @@
+/* WAYBAR - GRUVBOX THEME */
+
+* {
+  font-family: "Iosevka Nerd Font", monospace;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+}
+
+window#waybar {
+  background: transparent;
+  color: #ebdbb2;
+  margin: 0px 12px;
+}
+
+window#waybar > box {
+  background: rgba(40, 40, 40, 0.85);
+  border: 1px solid rgba(146, 131, 116, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+  padding: 2px 6px;
+}
+
+/* ── ARCH ICON ── */
+#custom-arch {
+  color: #d65d0e;
+  padding: 4px 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+#custom-brain {
+  color: #fe8019;
+  font-size: 16px;
+  padding: 4px 8px;
+}
+
+/* ── WORKSPACES ── */
+#workspaces {
+  padding: 0 6px;
+  background: transparent;
+}
+
+#workspaces button {
+  padding: 6px 12px;
+  margin: 3px 4px;
+  min-width: 28px;
+  border-radius: 8px;
+  background: rgba(60, 56, 54, 0.6);
+  color: #a89984;
+  border: 1px solid rgba(146, 131, 116, 0.25);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#workspaces button.active {
+  background: rgba(214, 93, 14, 0.25);
+  color: #fe8019;
+  border-color: #d65d0e;
+  box-shadow: 0 0 10px rgba(214, 93, 14, 0.4);
+}
+
+#workspaces button.urgent {
+  background: rgba(204, 36, 29, 0.25);
+  color: #fb4934;
+  border-color: #cc241d;
+}
+
+#workspaces button:hover {
+  background: rgba(215, 153, 33, 0.25);
+  color: #fabd2f;
+  border-color: #d79921;
+}
+
+/* ── MEDIA ── */
+#custom-media {
+  color: #b8bb26;
+  background: rgba(184, 187, 38, 0.12);
+  border: 1px solid rgba(184, 187, 38, 0.2);
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 13px;
+  margin: 0 4px;
+}
+
+/* ── CLOCK ── */
+#clock {
+  color: #fabd2f;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(250, 189, 47, 0.08);
+  border: 1px solid rgba(250, 189, 47, 0.2);
+  border-radius: 8px;
+  padding: 4px 18px;
+  margin: 0 4px;
+  letter-spacing: 1px;
+}
+
+/* ── SYSTEM INFO ── */
+#custom-gpu {
+  color: #b8bb26;
+  background: rgba(184, 187, 38, 0.08);
+  border: 1px solid rgba(184, 187, 38, 0.15);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 14px;
+  margin: 0 2px;
+}
+
+#cpu {
+  color: #fe8019;
+  background: rgba(254, 128, 25, 0.08);
+  border: 1px solid rgba(254, 128, 25, 0.15);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 14px;
+  margin: 0 2px;
+}
+
+#memory {
+  color: #d3869b;
+  background: rgba(211, 134, 155, 0.08);
+  border: 1px solid rgba(211, 134, 155, 0.15);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 14px;
+  margin: 0 2px;
+}
+
+#temperature {
+  color: #d79921;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 14px;
+  margin: 0 2px;
+}
+
+#temperature.critical {
+  color: #fb4934;
+  background: rgba(251, 73, 52, 0.15);
+  border: 1px solid rgba(251, 73, 52, 0.3);
+}
+
+/* ── CONNECTIVITY ── */
+#bluetooth {
+  color: #83a598;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 15px;
+  margin: 0 2px;
+}
+
+#bluetooth.connected {
+  color: #8ec07c;
+  background: rgba(142, 192, 124, 0.12);
+}
+
+#network {
+  color: #8ec07c;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 15px;
+  margin: 0 2px;
+}
+
+#network.disconnected {
+  color: #fb4934;
+}
+
+#pulseaudio {
+  color: #fabd2f;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 15px;
+  margin: 0 2px;
+}
+
+#pulseaudio.muted {
+  color: #665c54;
+}
+
+#battery {
+  color: #b8bb26;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 15px;
+  margin: 0 2px;
+}
+
+#battery.warning {
+  color: #fabd2f;
+}
+
+#battery.critical {
+  color: #fb4934;
+}
+
+#battery.charging {
+  color: #b8bb26;
+  background: rgba(184, 187, 38, 0.12);
+}
+
+/* ── NOTIFICATION ── */
+#custom-notification {
+  color: #d3869b;
+  font-size: 16px;
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin: 0 2px;
+}
+
+/* ── POWER ── */
+#custom-power {
+  color: #fb4934;
+  font-size: 16px;
+  padding: 4px 14px;
+  border-radius: 8px;
+  background: rgba(251, 73, 52, 0.08);
+  border: 1px solid rgba(251, 73, 52, 0.2);
+  margin: 0 4px;
+}
+
+#custom-power:hover {
+  background: rgba(251, 73, 52, 0.2);
+  border-color: rgba(251, 73, 52, 0.5);
+}
+
+/* ── TOOLTIPS ── */
+tooltip {
+  background: rgba(40, 40, 40, 0.95);
+  border: 1px solid rgba(146, 131, 116, 0.4);
+  border-radius: 8px;
+  color: #ebdbb2;
+  font-family: "Iosevka Nerd Font", monospace;
+  font-size: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+}
+
+tooltip label {
+  color: #ebdbb2;
+}

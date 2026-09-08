@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+
+THEMES_DIR="$HOME/.config/themes"
+CURRENT_THEME_FILE="$HOME/.config/current-theme"
+
+# Get current theme
+CURRENT=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "tokyo-night")
+
+# Show picker and get choice
+CHOICE=$(echo -e "Tokyo Night\nGruvbox\nEverforest\nCatppuccin\nNordic\nRose Pine\nAquamarine\nVoid" | \
+    rofi -dmenu -i -p "󰉼  Select Theme" -theme ~/.config/rofi/theme-selector.rasi -no-custom)
+
+# Exit if nothing selected
+[ -z "$CHOICE" ] && exit 0
+
+# Determine selected theme
+case "$CHOICE" in
+    *"Tokyo Night"*) THEME="tokyo-night" ;;
+    *"Gruvbox"*)     THEME="gruvbox" ;;
+    *"Everforest"*)  THEME="everforest" ;;
+    *"Catppuccin"*)  THEME="catppuccin" ;;
+    *"Nordic"*)      THEME="nordic" ;;
+    *"Rose Pine"*)   THEME="rose-pine" ;;
+    *"Aquamarine"*)  THEME="aquamarine" ;;
+    *"Void"*)        THEME="void" ;;
+    *)               exit 1 ;;
+esac
+
+# Check if already on this theme
+[ "$THEME" = "$CURRENT" ] && exit 0
+
+(
+    # Log for debugging
+    exec &> /tmp/theme-switcher.log
+
+    # --- Wallpaper ---
+    WALLPAPER_PATH=$(eval echo "$(cat "$THEMES_DIR/$THEME/wallpaper-path.txt" 2>/dev/null)")
+    if [ -d "$WALLPAPER_PATH" ]; then
+        WALL=$(find "$WALLPAPER_PATH" -type f \( -iname "*.jpg" -o -iname "*.png" \) 2>/dev/null | shuf -n 1)
+        if [ -n "$WALL" ]; then
+            swaybg -i "$WALL" -m fill &
+            sleep 0.1
+            pkill -o swaybg
+            echo "$WALL" > "$HOME/.cache/current_wallpaper"
+        fi
+    fi
+    sleep 0.1
+
+    # --- Waybar ---
+    cp "$THEMES_DIR/$THEME/waybar-config" "$HOME/.config/waybar/config"
+    cp "$THEMES_DIR/$THEME/waybar-style.css" "$HOME/.config/waybar/style.css"
+    killall waybar 2>/dev/null; sleep 0.1; 
+    waybar &
+
+    # --- Hyprland ---
+    cp "$THEMES_DIR/$THEME/hyprland.conf" "$HOME/.config/hypr/hyprland.conf"
+    hyprctl reload
+
+     # --- Cursor (Universal for all themes) ---
+    hyprctl setcursor Bibata-Modern-Classic 24 2>/dev/null || true
+
+    # --- Btop ---
+    mkdir -p ~/.config/btop
+    case "$THEME" in
+        tokyo-night) BTOP_THEME="tokyo-night" ;;
+        gruvbox)     BTOP_THEME="gruvbox_dark" ;;
+        everforest)  BTOP_THEME="everforest-dark-hard" ;;
+        catppuccin)  BTOP_THEME="catppuccin-mocha" ;;
+        nordic)      BTOP_THEME="nordic" ;;
+        rose-pine)   BTOP_THEME="rose-pine" ;;
+        aquamarine)  BTOP_THEME="aquamarine" ;;
+        void)        BTOP_THEME="void" ;;
+        *)           BTOP_THEME="Default" ;;
+    esac
+
+    if [ -f ~/.config/btop/btop.conf ]; then
+        sed -i "s/color_theme = .*/color_theme = \"$BTOP_THEME\"/" ~/.config/btop/btop.conf
+    else
+        echo "color_theme = \"$BTOP_THEME\"" > ~/.config/btop/btop.conf
+        echo "theme_background = true" >> ~/.config/btop/btop.conf
+    fi
+
+    # --- CAVA ---
+    if [ -f "$THEMES_DIR/$THEME/cava-config" ]; then
+        mkdir -p "$HOME/.config/cava"
+        cp "$THEMES_DIR/$THEME/cava-config" "$HOME/.config/cava/config"
+        killall -SIGUSR1 cava 2>/dev/null
+    fi
+
+    # --- Starship ---
+    [ -f "$THEMES_DIR/$THEME/starship.toml" ] && \
+        cp "$THEMES_DIR/$THEME/starship.toml" "$HOME/.config/starship.toml"
+
+    # --- Rofi ---
+    ROFI_COLORS_DIR="$HOME/.config/rofi/colors"
+    if [ "$THEME" = "tokyo-night" ]; then ROFI_FILE="tokyonight"
+    elif [ "$THEME" = "nordic" ]; then ROFI_FILE="nord"
+    elif [ "$THEME" = "rose-pine" ]; then ROFI_FILE="dracula"
+    elif [ "$THEME" = "aquamarine" ]; then ROFI_FILE="navy"
+    else ROFI_FILE="$THEME"; fi
+
+    if [ -f "$ROFI_COLORS_DIR/$ROFI_FILE.rasi" ]; then
+        ln -sf "$ROFI_COLORS_DIR/$ROFI_FILE.rasi" "$ROFI_COLORS_DIR/current.rasi"
+    fi    
+
+    # --- Kvantum ---
+    KVANTUM_CONFIG="$HOME/.config/Kvantum/kvantum.kvconfig"
+    case "$THEME" in
+        gruvbox) KV_T="Gruvbox" ;;
+        everforest) KV_T="MateriaEverforestDark" ;;
+        catppuccin) KV_T="catppuccin-mocha-mauve" ;;
+        nordic) KV_T="Nordic" ;;
+        rose-pine) KV_T="rose-pine-iris" ;;
+        *) KV_T="Kvantum-Tokyo-Night" ;;
+    esac
+    echo "theme=$KV_T" > "$KVANTUM_CONFIG"
+
+    # --- Wlogout ---
+    [ -f "$THEMES_DIR/$THEME/wlogout-layout" ] && cp "$THEMES_DIR/$THEME/wlogout-layout" "$HOME/.config/wlogout/layout"
+    [ -f "$THEMES_DIR/$THEME/wlogout-style.css" ] && cp "$THEMES_DIR/$THEME/wlogout-style.css" "$HOME/.config/wlogout/style.css"
+
+    # --- VSCodium ---
+    if command -v codium &> /dev/null && [ -f "$HOME/.config/VSCodium/User/settings.json" ]; then
+        case "$THEME" in
+            gruvbox) VSC_T="Gruvbox Dark Hard" ;;
+            everforest) VSC_T="Everforest Dark" ;;
+            catppuccin) VSC_T="Catppuccin Mocha" ;;
+            nordic) VSC_T="Nord" ;;
+            rose-pine) VSC_T="Rosé Pine" ;;
+            *) VSC_T="Tokyo Night" ;;
+        esac
+        sed -i "s/\"workbench.colorTheme\": *\"[^\"]*\"/\"workbench.colorTheme\": \"$VSC_T\"/" "$HOME/.config/VSCodium/User/settings.json"
+    fi
+
+    # --- Obsidian ---
+    OBS_CONF="$HOME/Obsidian/C++/.obsidian/appearance.json"
+    if [ -f "$OBS_CONF" ]; then
+        case "$THEME" in
+            gruvbox) OBS_T="Obsidian gruvbox" ;;
+            everforest) OBS_T="Everforest" ;;
+            catppuccin) OBS_T="Catppuccin" ;;
+            nordic) OBS_T="Obsidian Nord" ;;
+            rose-pine) OBS_T="Rose Pine" ;;
+            *) OBS_T="Tokyo Night" ;;
+        esac
+        sed -i "s/\"cssTheme\": \".*\"/\"cssTheme\": \"$OBS_T\"/" "$OBS_CONF"
+    fi
+
+    # --- Pywal ---
+    # Nuke ALL stale wal artifacts so Alacritty can never import old colors
+    rm -f ~/.cache/wal/sequences ~/.cache/wal/colors* ~/.cache/wal/schemes/* ~/.cache/wal/colors-*
+
+    WAL_SUCCESS=0
+    case "$THEME" in
+        gruvbox) wal --theme gruvbox 2>/dev/null || wal --theme gruvbox-dark ;;
+        everforest) wal -f ~/.config/wal/colorschemes/everforest.json 2>/dev/null ;;
+        catppuccin) wal -f ~/.config/wal/colorschemes/catppuccin-mocha.json 2>/dev/null ;;
+        nordic)
+            wal --theme nord 2>/dev/null || \
+            wal --theme base16-nord 2>/dev/null || \
+            wal --theme nordic 2>/dev/null || \
+            wal -f ~/.config/wal/colorschemes/nord.json 2>/dev/null || \
+            wal -f ~/.config/wal/colorschemes/nordic.json 2>/dev/null || \
+            wal --theme tokyonight 2>/dev/null
+            ;;
+        rose-pine)
+            wal --theme rose-pine 2>/dev/null || \
+            wal -f ~/.config/wal/colorschemes/rose-pine.json 2>/dev/null || \
+            wal --theme dracula 2>/dev/null
+            ;;
+        aquamarine)
+            wal --theme base16-ocean 2>/dev/null || \
+            wal --theme ocean 2>/dev/null || \
+            wal --theme aquamarine 2>/dev/null
+            ;;
+        void)
+            wal --theme base16-black 2>/dev/null || \
+            wal --theme black 2>/dev/null || \
+            wal --theme base16-default-dark 2>/dev/null
+            ;;
+        *) wal --theme tokyo-night 2>/dev/null || wal --theme tokyonight 2>/dev/null ;;
+    esac && WAL_SUCCESS=1
+
+    # If wal failed, destroy its generated files so Alacritty can't import stale colors
+    if [ "$WAL_SUCCESS" -ne 1 ]; then
+        rm -f ~/.cache/wal/colors* ~/.cache/wal/sequences ~/.cache/wal/schemes/*
+        echo "Pywal: WARNING - wal failed for $THEME, cleared stale color files"
+    fi
+
+    if [ "$WAL_SUCCESS" -eq 1 ] && [ -f ~/.cache/wal/sequences ]; then
+        for tty in /dev/pts/*; do [ -w "$tty" ] && cat ~/.cache/wal/sequences > "$tty" 2>/dev/null; done
+        command -v pywalfox &>/dev/null && pywalfox update
+    fi
+
+    # --- Alacritty (MOVED AFTER PYWAL) ---
+    ALACRITTY_SRC="$THEMES_DIR/$THEME/alacritty.toml"
+    ALACRITTY_DEST="$HOME/.config/alacritty/alacritty.toml"
+    if [ -f "$ALACRITTY_SRC" ]; then
+        # Atomic write so Alacritty's inotify watcher always detects it
+        cat "$ALACRITTY_SRC" > "$ALACRITTY_DEST.tmp"
+        sync "$ALACRITTY_DEST.tmp"
+        mv -f "$ALACRITTY_DEST.tmp" "$ALACRITTY_DEST"
+        sleep 0.3
+        if grep -q "\[colors" "$ALACRITTY_DEST"; then
+            echo "Alacritty: applied $THEME theme"
+        else
+            echo "Alacritty: WARNING - $THEME alacritty.toml has no [colors] section!"
+        fi
+    else
+        echo "Alacritty: WARNING - $ALACRITTY_SRC not found"
+    fi
+
+    # Save state
+    echo "$THEME" > "$CURRENT_THEME_FILE"
+    notify-send "Theme Switcher" "Switched to $THEME ✓"
+) &
+exit 0

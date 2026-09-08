@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+CACHE_DIR="$HOME/.cache/wallpaper-picker"
+ROFI_CONFIG="$HOME/.config/rofi/wallpaper.rasi"
+mkdir -p "$CACHE_DIR"
+
+# Gather all images
+mapfile -t IMAGES < <(find "$WALLPAPER_DIR" -type f \( \
+  -iname "*.jpg" -o \
+  -iname "*.jpeg" -o \
+  -iname "*.png" -o \
+  -iname "*.webp" \
+\) | sort)
+
+if [ ${#IMAGES[@]} -eq 0 ]; then
+  notify-send "Wallpaper Picker" "No images found in $WALLPAPER_DIR"
+  exit 1
+fi
+
+# Generate thumbnails
+for IMG in "${IMAGES[@]}"; do
+  HASH=$(echo "$IMG" | md5sum | cut -d' ' -f1)
+  THUMB="$CACHE_DIR/$HASH.png"
+  if [ ! -f "$THUMB" ]; then
+    convert "$IMG" -thumbnail 500x281^ -gravity center -extent 500x281 "$THUMB" 2>/dev/null
+  fi
+done
+
+# Build rofi menu
+MENU=""
+for IMG in "${IMAGES[@]}"; do
+  HASH=$(echo "$IMG" | md5sum | cut -d' ' -f1)
+  THUMB="$CACHE_DIR/$HASH.png"
+  LABEL="$(basename "$(dirname "$IMG")")/$(basename "$IMG")"
+  MENU+="${LABEL}\x00icon\x1f${THUMB}\n"
+done
+
+# Show rofi
+SELECTED=$(printf '%b' "$MENU" | rofi -dmenu -theme "$ROFI_CONFIG" -p "󰋩  Wallpapers" -show-icons -i)
+
+# Apply wallpaper
+if [ -n "$SELECTED" ]; then
+  for IMG in "${IMAGES[@]}"; do
+    LABEL="$(basename "$(dirname "$IMG")")/$(basename "$IMG")"
+    if [ "$LABEL" = "$SELECTED" ]; then
+      swaybg -i "$IMG" -m fill &
+      sleep 0.1
+      pkill -o swaybg
+      echo "$IMG" > "$HOME/.cache/current_wallpaper"
+      notify-send "Wallpaper Applied" "$(basename "$IMG")" -t 2000
+      break
+    fi
+  done
+fi
